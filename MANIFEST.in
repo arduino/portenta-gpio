@@ -1,0 +1,2 @@
+include LICENCE.txt
+include lib/python/Portenta/GPIO/99-gpio.rules
