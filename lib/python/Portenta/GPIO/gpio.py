@@ -41,11 +41,27 @@ def _from_channel_to_dict_key(channel):
     elif (_mode == IMX):
         key = IMX_main_header_map[channel]
     elif (_mode == BCM):
-        key = BOARD_main_header_map[channel]
+        key = BCM_main_header_map[channel]
 
     return key
+    
+def _output_single_channel( channel, value):
+        
+    tmp_key = _from_channel_to_dict_key(channel)
 
-def _setup_single_channel( channel, direction, pull_up_down):
+    gpio_obj = BOARD_main_header_map[tmp_key][4]
+
+    if(gpio_obj):
+        if(gpio_obj.direction == "out"):
+            gpio_obj.write(bool(value))
+        else:
+            raise RuntimeError("GPIO {} not configured as output".format(channel))
+    else:
+        raise RuntimeError("GPIO {} is not configured yet, use setup function first".format(channel))
+        
+    return
+
+def _setup_single_channel( channel, direction, pull_up_down, initial_state):
     tmp_direction = ""
     tmp_key = _from_channel_to_dict_key(channel)
         
@@ -64,34 +80,27 @@ def _setup_single_channel( channel, direction, pull_up_down):
             mode_name = "BCM"
 
         raise RuntimeError("GPIO {} in mode {} already configured".format(channel, mode_name))
+    
+    tmp_bias = "default"
 
+    if(pull_up_down == PUD_DOWN):
+        tmp_bias = "pull_down"
+    elif(pull_up_down == PUD_UP):
+        tmp_bias = "pull_up"
+        
     gpio_data = BOARD_main_header_map[tmp_key]
 
     try:
-        print("setup single channel")
         current_gpio = periphery.GPIO(_base_gpiochip_path+str(gpio_data[2][0]),
-                                      gpio_data[2][1], tmp_direction)
+                                      gpio_data[2][1], tmp_direction, bias = tmp_bias)
     except:
         raise RuntimeError("Unexpected error during GPIO {} configuration".format(channel))
     
     BOARD_main_header_map[tmp_key][4] = current_gpio
 
-    return
-    
-def _output_single_channel( channel, value):
-        
-    tmp_key = _from_channel_to_dict_key(channel)
+    if(initial_state and direction == OUT):
+        _output_single_channel(channel, initial_state)
 
-    gpio_obj = BOARD_main_header_map[tmp_key][4]
-
-    if(gpio_obj):
-        if(gpio_obj.direction == "out"):
-            gpio_obj.write(bool(value))
-        else:
-            raise RuntimeError("GPIO {} not configured as output".format(channel))
-    else:
-        raise RuntimeError("GPIO {} is not configured yet, use setup function first".format(channel))
-        
     return
 
 def _make_iterable(iterable, single_length=None):
@@ -121,10 +130,17 @@ def _cleanup_single_channel(channel):
     return
 
 def _cleanup_all_channels():
+    curr_dict = BOARD_main_header_map 
 
-    for key in BOARD_main_header_map.keys() :
-        if(BOARD_main_header_map[key][4]):
-            _cleanup_single_channel(key)
+    if (_mode == X8):
+        curr_dict = X8_main_header_map
+    elif (_mode == IMX):
+        curr_dict = IMX_main_header_map
+    elif (_mode == BCM):
+        curr_dict = BCM_main_header_map
+
+    for key in curr_dict.keys():
+        _cleanup_single_channel(key)
 
     return
 
@@ -147,12 +163,15 @@ def setmode(mode):
 def getmode():
     return _mode
 
-def setup(channels, direction, pull_up_down=PUD_OFF, initial=None, consumer='Portenta-gpio'):
+def setup(channels, direction, pull_up_down=PUD_OFF, initial=None, consumer='portenta-gpio'):
     channel_list = _make_iterable(channels)
     
     for channel in channel_list:
-        _setup_single_channel(channel, direction, pull_up_down)
-
+        try:
+            _setup_single_channel(channel, direction, pull_up_down, initial)
+        except:
+            if(len(channel_list) > 1):
+                print("Error configuring GPIO {} during multiple channel configuration skipping. Check this error.".format(channel))
     return
 
 def output(channels, values):
