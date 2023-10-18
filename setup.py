@@ -40,6 +40,6 @@ setup(name                          = 'Portenta.GPIO',
       url                           = 'https://github.com/SuMere/portenta-gpio',
       classifiers                   = classifiers,
       package_dir                   = {'': 'lib/python/'},
-      packages                      = ['Portenta', 'Portenta.GPIO'],
+      packages                      = ['Portenta', 'Portenta.GPIO', 'RPi', 'RPi.GPIO'],
       include_package_data          = True,
 )
