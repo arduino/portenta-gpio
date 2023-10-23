@@ -32,6 +32,7 @@ BOTH    = 3
 
 _mode = BOARD
 _base_gpiochip_path = "/dev/gpiochip"
+_gpio_warnings = True
 
 def _from_channel_to_dict_key(channel):
     key = channel
@@ -124,7 +125,8 @@ def _cleanup_single_channel(channel):
         gpio_obj.close()
         BOARD_main_header_map[key][4] = None
     else:
-        warnings.warn("GPIO {} not configured it does not need cleaning".format(channel))
+        if(_gpio_warnings):
+            warnings.warn("GPIO {} not configured it does not need cleaning".format(channel))
         return
     
     return
@@ -142,6 +144,12 @@ def _cleanup_all_channels():
     for key in curr_dict.keys():
         _cleanup_single_channel(key)
 
+    return
+
+def setwarnings(state):
+    global _gpio_warnings
+    _gpio_warnings = bool(state)
+    
     return
 
 def setmode(mode):
