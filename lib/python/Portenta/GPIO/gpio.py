@@ -50,7 +50,7 @@ def _output_single_channel( channel, value):
         
     tmp_key = _from_channel_to_dict_key(channel)
 
-    gpio_obj = BOARD_main_header_map[tmp_key][4]
+    gpio_obj = BOARD_main_header_map[tmp_key][INDEX_GPIO_OBJ]
 
     if(gpio_obj):
         if(gpio_obj.direction == "out"):
@@ -71,7 +71,7 @@ def _setup_single_channel( channel, direction, pull_up_down, initial_state):
     elif (direction == OUT):
         tmp_direction = "out"
 
-    if (BOARD_main_header_map[tmp_key][4]):
+    if (BOARD_main_header_map[tmp_key][INDEX_GPIO_OBJ]):
         mode_name = "BOARD"
         if (_mode == X8):
             mode_name = "X8"
@@ -92,12 +92,12 @@ def _setup_single_channel( channel, direction, pull_up_down, initial_state):
     gpio_data = BOARD_main_header_map[tmp_key]
 
     try:
-        current_gpio = periphery.GPIO(_base_gpiochip_path+str(gpio_data[2][0]),
-                                      gpio_data[2][1], tmp_direction, bias = tmp_bias)
+        current_gpio = periphery.GPIO(_base_gpiochip_path+str(gpio_data[INDEX_GPIOCHIP_INFO][INDEX_GPIOCHIP_NUM]),
+                                      gpio_data[INDEX_GPIOCHIP_INFO][INDEX_GPIO], tmp_direction, bias = tmp_bias)
     except:
         raise RuntimeError("Unexpected error during GPIO {} configuration".format(channel))
     
-    BOARD_main_header_map[tmp_key][4] = current_gpio
+    BOARD_main_header_map[tmp_key][INDEX_GPIO_OBJ] = current_gpio
 
     if(initial_state and direction == OUT):
         _output_single_channel(channel, initial_state)
@@ -119,11 +119,11 @@ def _make_iterable(iterable, single_length=None):
 def _cleanup_single_channel(channel):
     key = _from_channel_to_dict_key(channel)
 
-    gpio_obj = BOARD_main_header_map[key][4]
+    gpio_obj = BOARD_main_header_map[key][INDEX_GPIO_OBJ]
 
     if(gpio_obj):
         gpio_obj.close()
-        BOARD_main_header_map[key][4] = None
+        BOARD_main_header_map[key][INDEX_GPIO_OBJ] = None
     else:
         if(_gpio_warnings):
             warnings.warn("GPIO {} not configured it does not need cleaning".format(channel))
@@ -198,7 +198,7 @@ def input(channel):
     ret_val = None
     tmp_key = _from_channel_to_dict_key(channel)
 
-    gpio_obj = BOARD_main_header_map[tmp_key][4]
+    gpio_obj = BOARD_main_header_map[tmp_key][INDEX_GPIO_OBJ]
 
     if(gpio_obj):
         if(gpio_obj.direction == "in"):
@@ -223,7 +223,7 @@ def cleanup(channels=None):
     return
 def gpio_function(channel):
     key = _from_channel_to_dict_key(channel)
-    gpio_obj = BOARD_main_header_map[key][4]
+    gpio_obj = BOARD_main_header_map[key][INDEX_GPIO_OBJ]
 
     func = UNKNOWN
 
