@@ -202,10 +202,7 @@ def input(channel):
 
     if(gpio_obj):
         if(gpio_obj.direction == "in"):
-            if(gpio_obj.read()):
-                ret_val = HIGH
-            else:
-                ret_val = LOW
+            ret_val = int(gpio_obj.read())
         else:
             raise RuntimeError("GPIO {} is not configured ad input".format(channel))
     else:
@@ -224,3 +221,21 @@ def cleanup(channels=None):
         _cleanup_all_channels()
 
     return
+def gpio_function(channel):
+    key = _from_channel_to_dict_key(channel)
+    gpio_obj = BOARD_main_header_map[key][4]
+
+    func = UNKNOWN
+
+    if(gpio_obj):
+        if(gpio_obj.direction == "in"):
+            func = IN
+        elif(gpio_obj.direction == "out"):
+            func = OUT
+        else:
+            raise RuntimeError("Unexpected behavior on GPIO {}".format(channel))
+    else:
+        if(_gpio_warnings):
+            warnings.warn("GPIO {} not configured".format(channel))
+
+    return func
