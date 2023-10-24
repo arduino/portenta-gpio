@@ -1,4 +1,5 @@
 from Portenta.GPIO.portenta_gpio_map import * 
+from Portenta.GPIO.event_producer import *
 import periphery
 import warnings
 import os
@@ -8,7 +9,9 @@ _GPIOCHIP_ROOT = "/dev/gpiochip5"
 
 if not os.access(_GPIOCHIP_ROOT, os.W_OK):
     raise RuntimeError("The current user does not have permissions set to access the library functionalites. Please configure permissions or use the root user to run this. It is also possible that {} does not exist. Please check if that file is present.".format(_GPIOCHIP_ROOT))
-    
+
+init_interrupt_loop()
+
 UNKNOWN = -1
 
 BCM = 0
@@ -221,6 +224,120 @@ def cleanup(channels=None):
         _cleanup_all_channels()
 
     return
+
+def add_event_detect(channel, edge, callback=None, bouncetime=None, polltime=0.2):
+    key = _from_channel_to_dict_key(channel)
+
+    if (not callable(callback)) and callback is not None:
+        raise TypeError("Callback Parameter must be callable")
+    
+    gpio_obj = BOARD_main_header_map[key][INDEX_GPIO_OBJ]
+    
+    if(gpio_obj):
+        if(gpio_obj.direction != "in"):
+            raise RuntimeError("GPIO {} is not configured ad input".format(channel))
+    else:
+        raise RuntimeError("GPIO {} is not configured yet, use setup function first".format(channel))
+    
+    if edge != RISING and edge != FALLING and edge != BOTH:
+        raise ValueError("The edge must be set to RISING, FALLING, or BOTH")
+    
+    if(edge == RISING):
+        gpio_obj.edge = "rising"
+    elif(edge == FALLING):
+        gpio_obj.edge = "falling"
+    else:
+        gpio_obj.edge = "both"
+
+    if(callback):
+        BOARD_main_header_map[key][INDEX_EVENT_CB] = callback
+
+    add_gpio_to_checklist(key)
+
+    return
+
+def remove_event_detect(channel, timeout=0.5):
+    key = _from_channel_to_dict_key(channel)
+    gpio_obj = BOARD_main_header_map[key][INDEX_GPIO_OBJ]
+
+    if(gpio_obj):
+        if(gpio_obj.edge != "none"):
+            gpio_obj.edge = "none"
+
+            if(not remove_gpio_from_checklist(key) and _gpio_warnings):
+                warnings.warn("GPIO {} event detect is not set".format(channel))
+        else:
+            if(_gpio_warnings):
+                warnings.warn("GPIO {} has not an event set".format(channel))
+    else:
+        raise RuntimeError("GPIO {} is not configured yet, use setup function first".format(channel))
+
+    BOARD_main_header_map[key][INDEX_EVENT_TRIGGD] = False
+    BOARD_main_header_map[key][INDEX_EVENT_CB] = None
+
+    return
+
+def event_detected(channel):
+    key = _from_channel_to_dict_key(channel)
+    gpio_obj = BOARD_main_header_map[key][INDEX_GPIO_OBJ]
+    
+    if(gpio_obj):
+        if(gpio_obj.direction != "in"):
+            raise RuntimeError("GPIO {} is not configured ad input".format(channel))
+    else:
+        raise RuntimeError("GPIO {} is not configured yet, use setup function first".format(channel))
+    
+    return get_event_status(key)
+
+def add_event_callback(channel, callback):
+    key = _from_channel_to_dict_key(channel)
+    gpio_obj = BOARD_main_header_map[key][INDEX_GPIO_OBJ]
+    
+    if(gpio_obj):
+        if(gpio_obj.direction != "in"):
+            if(gpio_obj.edge != "none"):
+                if(callable(callback)):
+                    BOARD_main_header_map[key][INDEX_EVENT_CB] = callback
+                else:
+                    raise TypeError("Callback Parameter must be callable")
+            else:
+                raise ValueError("There is non event set, it must be RISING, FALLING, or BOTH")
+        else:
+            raise RuntimeError("GPIO {} is not configured ad input".format(channel))
+    else:
+          raise RuntimeError("GPIO {} is not configured yet, use setup function first".format(channel))
+      
+    return
+
+def wait_for_edge(channel, edge, bouncetime=None, timeout=None):
+    key = _from_channel_to_dict_key(channel)
+    gpio_obj = BOARD_main_header_map[key][INDEX_GPIO_OBJ]
+    
+    if(gpio_obj):
+        if(gpio_obj.direction != "in"):
+            raise RuntimeError("GPIO {} is not configured ad input".format(channel))
+    else:
+        raise RuntimeError("GPIO {} is not configured yet, use setup function first".format(channel))
+    
+    if edge != RISING and edge != FALLING and edge != BOTH:
+        raise ValueError("The edge must be set to RISING, FALLING, or BOTH")
+    
+    if(edge == RISING):
+        gpio_obj.edge = "rising"
+    elif(edge == FALLING):
+        gpio_obj.edge = "falling"
+    elif(edge == BOTH):
+        gpio_obj.edge = "both"
+
+    if(timeout and  not isinstance(timeout, (int, float))):
+        raise ValueError("Timeout should be int, float or None")
+    
+    gpio_obj.poll(timeout)
+    gpio_obj.read_event()
+    gpio_obj.event = "none"
+    
+    return
+
 def gpio_function(channel):
     key = _from_channel_to_dict_key(channel)
     gpio_obj = BOARD_main_header_map[key][INDEX_GPIO_OBJ]
