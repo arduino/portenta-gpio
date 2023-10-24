@@ -50,17 +50,18 @@ def add_gpio_to_checklist(key):
 
 def remove_gpio_from_checklist(key):
     file_descriptor = BOARD_main_header_map[key][INDEX_GPIO_OBJ].fd
+    ret_val = True
 
     _mutex.acquire()
     try:
         del _fd_to_map_key[file_descriptor]
     except:
-        return False
+        ret_val = False
     
     _fd_set.remove(file_descriptor)
     _mutex.release()
     
-    return True
+    return ret_val
 
 def _perform_read_event(gpio):
     #TODO evade all events?
