@@ -143,9 +143,6 @@ BCM_main_header_map = {
     27 : 13,
 }
 
-def test_func():
-    return "test"
-
 '''
 BCM_analog_header_map = {
     1  : ("A0", ["GPIO"],),
