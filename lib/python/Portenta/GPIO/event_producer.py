@@ -115,9 +115,7 @@ def _loop():
             _mutex.release()
 
             if(ready_fds[0]):
-                print("Event list not empty")
                 for fd in ready_fds[0]:
-                    print("checking GPIO {}".format(_fd_to_map_key[fd]))
                     _check_gpio_event(fd)
         
         sleep(LOOP_SLEEP_TIME)
