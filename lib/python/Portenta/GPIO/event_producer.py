@@ -94,10 +94,10 @@ def _check_gpio_event(file_descriptor):
 def get_event_status(key):
     _mutex.acquire()
     ret_val = BOARD_main_header_map[key][INDEX_EVENT_TRIGGD]
-    '''
+    
     if(ret_val):
         BOARD_main_header_map[key][INDEX_EVENT_TRIGGD] = False
-    '''
+    
     _mutex.release()
 
     return ret_val
