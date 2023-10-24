@@ -33,6 +33,10 @@ RISING  = 1
 FALLING = 2
 BOTH    = 3
 
+WARNINGS_GPIO = 1
+WARNINGS_EVENT = 2
+WARNINGS_BOTH = 3
+
 _mode = BOARD
 _base_gpiochip_path = "/dev/gpiochip"
 _gpio_warnings = True
@@ -149,10 +153,19 @@ def _cleanup_all_channels():
 
     return
 
-def setwarnings(state):
+def setwarnings(state:bool, module=WARNINGS_BOTH):
     global _gpio_warnings
-    _gpio_warnings = bool(state)
     
+    if(module == WARNINGS_EVENT):
+        set_event_warnings(state)
+    elif(module == WARNINGS_GPIO):
+        _gpio_warnings = state
+    elif(module == WARNINGS_BOTH):
+        _gpio_warnings = state
+        set_event_warnings(state)
+    else:
+        raise ValueError("Selected module is not recognized as valid, please select between WARNINGS_EVENT, WARNINGS_GPIO or WARNNGS_BOTH")
+
     return
 
 def setmode(mode):
