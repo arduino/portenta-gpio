@@ -65,7 +65,7 @@ def remove_gpio_from_checklist(key):
 def _perform_read_event(gpio):
     #TODO evade all events?
     try:
-        gpio.red_event()
+        gpio.read_event()
     except:
         if(_event_warnings):
             warnings.warn("Read event failed")
