@@ -9,6 +9,47 @@ INDEX_EVENT_CB = 6
 INDEX_GPIOCHIP_NUM = 0
 INDEX_GPIO = 1
 
+UNKNOWN = -1
+
+BCM = 0
+X8 = 1
+IMX = 2
+BOARD = 3
+
+LOW = 0
+HIGH = 1
+
+IN = 0
+OUT = 1
+
+PUD_OFF  = 2
+PUD_UP   = 3
+PUD_DOWN = 4
+
+RISING  = 1
+FALLING = 2
+BOTH    = 3
+
+WARNINGS_GPIO = 1
+WARNINGS_EVENT = 2
+WARNINGS_BOTH = 3
+
+mode = BOARD
+
+def from_channel_to_dict_key(channel):
+    global mode
+
+    key = channel
+
+    if (mode == X8):
+        key = X8_main_header_map[channel]
+    elif (mode == IMX):
+        key = IMX_main_header_map[channel]
+    elif (mode == BCM):
+        key = BCM_main_header_map[channel]
+
+    return key
+
 BOARD_main_header_map = {
 # INDEX    TAG       CAPABILITIES                CHIP#+GPIO#    HD CONNECTOR    GPIO OBJECT    EVENT TRIGGERED  EVENT CB
     1  : ["3v3"     ,None                        ,None          ,None,          None,          False,           None],

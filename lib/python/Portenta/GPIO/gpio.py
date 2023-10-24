@@ -12,50 +12,12 @@ if not os.access(_GPIOCHIP_ROOT, os.W_OK):
 
 init_interrupt_loop()
 
-UNKNOWN = -1
-
-BCM = 0
-X8 = 1
-IMX = 2
-BOARD = 3
-
-LOW = 0
-HIGH = 1
-
-IN = 0
-OUT = 1
-
-PUD_OFF  = 2
-PUD_UP   = 3
-PUD_DOWN = 4
-
-RISING  = 1
-FALLING = 2
-BOTH    = 3
-
-WARNINGS_GPIO = 1
-WARNINGS_EVENT = 2
-WARNINGS_BOTH = 3
-
-_mode = BOARD
 _base_gpiochip_path = "/dev/gpiochip"
 _gpio_warnings = True
-
-def _from_channel_to_dict_key(channel):
-    key = channel
-
-    if (_mode == X8):
-        key = X8_main_header_map[channel]
-    elif (_mode == IMX):
-        key = IMX_main_header_map[channel]
-    elif (_mode == BCM):
-        key = BCM_main_header_map[channel]
-
-    return key
     
 def _output_single_channel( channel, value):
         
-    tmp_key = _from_channel_to_dict_key(channel)
+    tmp_key = from_channel_to_dict_key(channel)
 
     gpio_obj = BOARD_main_header_map[tmp_key][INDEX_GPIO_OBJ]
 
@@ -71,7 +33,7 @@ def _output_single_channel( channel, value):
 
 def _setup_single_channel( channel, direction, pull_up_down, initial_state):
     tmp_direction = ""
-    tmp_key = _from_channel_to_dict_key(channel)
+    tmp_key = from_channel_to_dict_key(channel)
         
     if(direction == IN):
         tmp_direction = "in"
@@ -80,11 +42,11 @@ def _setup_single_channel( channel, direction, pull_up_down, initial_state):
 
     if (BOARD_main_header_map[tmp_key][INDEX_GPIO_OBJ]):
         mode_name = "BOARD"
-        if (_mode == X8):
+        if (mode == X8):
             mode_name = "X8"
-        elif (_mode == IMX):
+        elif (mode == IMX):
             mode_name = "IMX"
-        elif (_mode == BCM):
+        elif (mode == BCM):
             mode_name = "BCM"
 
         raise RuntimeError("GPIO {} in mode {} already configured".format(channel, mode_name))
@@ -124,7 +86,7 @@ def _make_iterable(iterable, single_length=None):
     return iterable
     
 def _cleanup_single_channel(channel):
-    key = _from_channel_to_dict_key(channel)
+    key = from_channel_to_dict_key(channel)
 
     gpio_obj = BOARD_main_header_map[key][INDEX_GPIO_OBJ]
 
@@ -141,11 +103,11 @@ def _cleanup_single_channel(channel):
 def _cleanup_all_channels():
     curr_dict = BOARD_main_header_map 
 
-    if (_mode == X8):
+    if (mode == X8):
         curr_dict = X8_main_header_map
-    elif (_mode == IMX):
+    elif (mode == IMX):
         curr_dict = IMX_main_header_map
-    elif (_mode == BCM):
+    elif (mode == BCM):
         curr_dict = BCM_main_header_map
 
     for key in curr_dict.keys():
@@ -168,24 +130,24 @@ def setwarnings(state:bool, module=WARNINGS_BOTH):
 
     return
 
-def setmode(mode):
-    global _mode 
+def setmode(new_mode):
+    global mode 
     modes = {"BOARD": BOARD,
              "BCM"  : BCM,
              "X8"   : X8,
              "IMX"  : IMX}
     
-    if (mode in modes.keys()):
-            _mode = modes[mode]
-    elif(mode in modes.values()):
-        _mode = mode
+    if (new_mode in modes.keys()):
+        mode = modes[new_mode]
+    elif(new_mode in modes.values()):
+        mode = new_mode
     else:
         raise ValueError("{} is not recognized as a valid mode. Modes are: BOARD, BCM, X8, IMX".format(mode))
     
     return
 
 def getmode():
-    return _mode
+    return mode
 
 def setup(channels, direction, pull_up_down=PUD_OFF, initial=None, consumer='portenta-gpio'):
     channel_list = _make_iterable(channels)
@@ -212,7 +174,7 @@ def output(channels, values):
     
 def input(channel):
     ret_val = None
-    tmp_key = _from_channel_to_dict_key(channel)
+    tmp_key = from_channel_to_dict_key(channel)
 
     gpio_obj = BOARD_main_header_map[tmp_key][INDEX_GPIO_OBJ]
 
@@ -239,7 +201,7 @@ def cleanup(channels=None):
     return
 
 def add_event_detect(channel, edge, callback=None, bouncetime=None, polltime=0.2):
-    key = _from_channel_to_dict_key(channel)
+    key = from_channel_to_dict_key(channel)
 
     if (not callable(callback)) and callback is not None:
         raise TypeError("Callback Parameter must be callable")
@@ -265,19 +227,19 @@ def add_event_detect(channel, edge, callback=None, bouncetime=None, polltime=0.2
     if(callback):
         BOARD_main_header_map[key][INDEX_EVENT_CB] = callback
 
-    add_gpio_to_checklist(key)
+    add_gpio_to_checklist(channel)
 
     return
 
 def remove_event_detect(channel, timeout=0.5):
-    key = _from_channel_to_dict_key(channel)
+    key = from_channel_to_dict_key(channel)
     gpio_obj = BOARD_main_header_map[key][INDEX_GPIO_OBJ]
 
     if(gpio_obj):
         if(gpio_obj.edge != "none"):
             gpio_obj.edge = "none"
 
-            if(not remove_gpio_from_checklist(key) and _gpio_warnings):
+            if(not remove_gpio_from_checklist(channel) and _gpio_warnings):
                 warnings.warn("GPIO {} event detect is not set".format(channel))
         else:
             if(_gpio_warnings):
@@ -291,7 +253,7 @@ def remove_event_detect(channel, timeout=0.5):
     return
 
 def event_detected(channel):
-    key = _from_channel_to_dict_key(channel)
+    key = from_channel_to_dict_key(channel)
     gpio_obj = BOARD_main_header_map[key][INDEX_GPIO_OBJ]
     
     if(gpio_obj):
@@ -300,10 +262,10 @@ def event_detected(channel):
     else:
         raise RuntimeError("GPIO {} is not configured yet, use setup function first".format(channel))
     
-    return get_event_status(key)
+    return get_event_status(channel)
 
 def add_event_callback(channel, callback):
-    key = _from_channel_to_dict_key(channel)
+    key = from_channel_to_dict_key(channel)
     gpio_obj = BOARD_main_header_map[key][INDEX_GPIO_OBJ]
     
     if(gpio_obj):
@@ -323,7 +285,7 @@ def add_event_callback(channel, callback):
     return
 
 def wait_for_edge(channel, edge, bouncetime=None, timeout=None):
-    key = _from_channel_to_dict_key(channel)
+    key = from_channel_to_dict_key(channel)
     gpio_obj = BOARD_main_header_map[key][INDEX_GPIO_OBJ]
     
     if(gpio_obj):
@@ -352,7 +314,7 @@ def wait_for_edge(channel, edge, bouncetime=None, timeout=None):
     return
 
 def gpio_function(channel):
-    key = _from_channel_to_dict_key(channel)
+    key = from_channel_to_dict_key(channel)
     gpio_obj = BOARD_main_header_map[key][INDEX_GPIO_OBJ]
 
     func = UNKNOWN

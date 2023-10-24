@@ -18,17 +18,19 @@ def set_event_warnings(status:bool):
     _event_warnings = status
     return
 
-def add_gpio_to_checklist(key):
+def add_gpio_to_checklist(channel):
+    key = from_channel_to_dict_key(channel)
     file_descriptor = BOARD_main_header_map[key][INDEX_GPIO_OBJ].fd
 
     _mutex.acquire()
-    _fd_to_map_key[file_descriptor] = key
+    _fd_to_map_key[file_descriptor] = channel
     _fd_set.add(file_descriptor)
     _mutex.release()
 
     return
 
-def remove_gpio_from_checklist(key):
+def remove_gpio_from_checklist(channel):
+    key = from_channel_to_dict_key(channel)
     file_descriptor = BOARD_main_header_map[key][INDEX_GPIO_OBJ].fd
     ret_val = True
 
@@ -55,15 +57,16 @@ def _perform_read_event(gpio):
 
 def _check_gpio_event(file_descriptor):
     _mutex.acquire()
-    key = _fd_to_map_key[file_descriptor]
+    channel = _fd_to_map_key[file_descriptor]
     _mutex.release() 
 
+    key = from_channel_to_dict_key(channel)
     gpio_data_list =BOARD_main_header_map[key]
     gpio_obj = gpio_data_list[INDEX_GPIO_OBJ]
     _perform_read_event(gpio_obj)
     
     if(gpio_data_list[INDEX_EVENT_CB]):
-        gpio_data_list[INDEX_EVENT_CB]()
+        gpio_data_list[INDEX_EVENT_CB](channel)
     else:
         print("No event for GPIO")
     
@@ -71,7 +74,8 @@ def _check_gpio_event(file_descriptor):
 
     return
 
-def get_event_status(key):
+def get_event_status(channel):
+    key = from_channel_to_dict_key(channel)
     _mutex.acquire()
     ret_val = BOARD_main_header_map[key][INDEX_EVENT_TRIGGD]
     
