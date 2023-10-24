@@ -13,26 +13,6 @@ _mutex = None
 _loop_thread = None
 _event_warnings = True
 
-''' TEST START
-g_in = GPIO("/dev/gpiochip2", 24, "in", edge="rising")
-gpio_list = [g_in]
-
-for gpio in gpio_list:
-    _fd_set.add(gpio.fd)
-    fd_to_gpio_map[gpio.fd] = gpio
-
-while True:
-    while len(_fd_set) > 0:
-        ready_fds = select.select(_fd_set, [], [], 0.1)
-        
-        if(len(ready_fds[0])):
-            for fd in ready_fds:
-                gpio = fd_to_gpio_map[fd]
-                print("triggered GPIO with file descriptor #{}".format(fd))
-                print(gpio.read_event())
-
-#TEST STOP '''
-
 def set_event_warnings(status:bool):
     global _event_warnings
     _event_warnings = status
