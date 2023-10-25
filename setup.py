@@ -23,13 +23,12 @@ from setuptools import setup
 classifiers = ['Operating System :: POSIX :: Linux',
                'License :: OSI Approved :: MIT License',
                'Intended Audience :: Developers',
-               'Programming Language :: Python :: 2.7',
                'Programming Language :: Python :: 3',
                'Topic :: Software Development',
                'Topic :: System :: Hardware']
 
 setup(name                          = 'Portenta.GPIO',
-      version                       = '0.0.1',
+      version                       = '0.0.2',
       author                        = 'Riccardo Mereu',
       author_email                  = 'r.mereu@arduino.cc',
       description                   = 'A module to control Portenta GPIO channels',
