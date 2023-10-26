@@ -1,6 +1,6 @@
 # Portenta.GPIO - RPi.GPIO for Arduino Portenta X8
 
-Arduino Hat carrier contains a 40 pin GPIO
+Arduino Portenta Hat carrier contains a 40 pin GPIO
 header, similar to the 40 pin header in the Raspberry Pi. These GPIOs can be
 controlled for digital input and output using the Python library provided in the
 Portenta GPIO Library package. The library has the same API as the RPi.GPIO
@@ -63,7 +63,7 @@ The Portenta GPIO library provides four ways of numbering the I/O pins. The firs
 two correspond to the modes provided by the RPi.GPIO library, i.e BOARD and BCM
 which refer to the pin number of the 40 pin GPIO header and the Broadcom SoC
 GPIO numbers respectively. The remaining two modes, X8 and IMX use strings for X8 mode and NXP standard pin numbering.
-X8 mode use the same naming in the HAT Carrier serigraphy.
+X8 mode use the same naming in the Portenta HAT Carrier serigraphy.
 
 To specify which mode you are using use the following function
 call otherwise BOARD mode is default:
