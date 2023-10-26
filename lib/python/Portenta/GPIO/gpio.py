@@ -268,7 +268,7 @@ def add_event_callback(channel, callback):
     gpio_obj = BOARD_main_header_map[key][INDEX_GPIO_OBJ]
     
     if(gpio_obj):
-        if(gpio_obj.direction != "in"):
+        if(gpio_obj.direction == "in"):
             if(gpio_obj.edge != "none"):
                 if(callable(callback)):
                     BOARD_main_header_map[key][INDEX_EVENT_CB] = callback
