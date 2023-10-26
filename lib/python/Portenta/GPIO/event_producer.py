@@ -60,18 +60,15 @@ def _perform_read_event(gpio):
 
     return
 
-def _check_gpio_event(file_descriptor):
-    _mutex.acquire()
-    channel = _fd_to_map_key[file_descriptor]
-    _mutex.release() 
-
+def _check_gpio_event(channel):
     key = from_channel_to_dict_key(channel)
     gpio_data_list =BOARD_main_header_map[key]
     gpio_obj = gpio_data_list[INDEX_GPIO_OBJ]
     _perform_read_event(gpio_obj)
     
-    if(gpio_data_list[INDEX_EVENT_CB]):
-        gpio_data_list[INDEX_EVENT_CB](channel)
+    if(len(gpio_data_list[INDEX_EVENT_CB])):
+        for callback in gpio_data_list[INDEX_EVENT_CB]:
+            callback(channel)
     else:
         print("No event for GPIO")
     

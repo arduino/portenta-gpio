@@ -224,7 +224,7 @@ def add_event_detect(channel, edge, callback=None, bouncetime=None, polltime=0.2
         gpio_obj.edge = "both"
 
     if(callback):
-        BOARD_main_header_map[key][INDEX_EVENT_CB] = callback
+        BOARD_main_header_map[key][INDEX_EVENT_CB].append(callback)
 
     add_gpio_to_checklist(channel)
 
@@ -249,7 +249,7 @@ def remove_event_detect(channel, timeout=0.5):
         raise RuntimeError("GPIO {} is not configured yet, use setup function first".format(channel))
 
     BOARD_main_header_map[key][INDEX_EVENT_TRIGGD] = False
-    BOARD_main_header_map[key][INDEX_EVENT_CB] = None
+    BOARD_main_header_map[key][INDEX_EVENT_CB].clear()
 
     return
 
@@ -273,7 +273,7 @@ def add_event_callback(channel, callback):
         if(gpio_obj.direction == "in"):
             if(gpio_obj.edge != "none"):
                 if(callable(callback)):
-                    BOARD_main_header_map[key][INDEX_EVENT_CB] = callback
+                    BOARD_main_header_map[key][INDEX_EVENT_CB].append(callback)
                 else:
                     raise TypeError("Callback Parameter must be callable")
             else:
