@@ -238,8 +238,10 @@ def remove_event_detect(channel, timeout=0.5):
         if(gpio_obj.edge != "none"):
             if(not remove_gpio_from_checklist(channel) and _gpio_warnings):
                 warnings.warn("GPIO {} event detect is not set".format(channel))
-            
-            gpio_obj.edge = "none"
+            try:
+                gpio_obj.edge = "none"
+            except Exception as e:
+                print(e)
         else:
             if(_gpio_warnings):
                 warnings.warn("GPIO {} has not an event set".format(channel))
