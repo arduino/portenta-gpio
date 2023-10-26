@@ -179,10 +179,9 @@ def input(channel):
     gpio_obj = BOARD_main_header_map[tmp_key][INDEX_GPIO_OBJ]
 
     if(gpio_obj):
-        if(gpio_obj.direction == "in"):
-            ret_val = int(gpio_obj.read())
-        else:
-            raise RuntimeError("GPIO {} is not configured ad input".format(channel))
+        ret_val = int(gpio_obj.read())
+        if(gpio_obj.direction == "out" and _gpio_warnings):
+            warnings.warn("Performing a read on an GPIO {} configured as GPIO.OUT".format(channel))
     else:
         raise RuntimeError("GPIO {} is not configured yet, use setup function first".format(channel))
     
