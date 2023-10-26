@@ -306,8 +306,9 @@ def wait_for_edge(channel, edge, bouncetime=None, timeout=None):
     if(timeout and  not isinstance(timeout, (int, float))):
         raise ValueError("Timeout should be int, float or None")
     
-    gpio_obj.poll(timeout)
-    gpio_obj.read_event()
+    if (gpio_obj.poll(timeout)):
+        gpio_obj.read_event()
+    
     gpio_obj.event = "none"
     
     return
