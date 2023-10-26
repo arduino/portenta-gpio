@@ -1,12 +1,13 @@
 from Portenta.GPIO.portenta_gpio_map import *
-from periphery import GPIO as GPIO
-from time import sleep
 import threading
 import warnings
 import select
+import atexit
+import os
 
-LOOP_SLEEP_TIME = 0.5
+_OP_FD = "/tmp/.op_fd"
 
+_operations_file = None
 _fd_to_map_key = {}
 _fd_set = set()
 _mutex = None
@@ -27,6 +28,8 @@ def add_gpio_to_checklist(channel):
     _fd_set.add(file_descriptor)
     _mutex.release()
 
+    os.write(_operations_file, "a".encode())
+
     return
 
 def remove_gpio_from_checklist(channel):
@@ -42,6 +45,8 @@ def remove_gpio_from_checklist(channel):
     
     _fd_set.remove(file_descriptor)
     _mutex.release()
+
+    os.write(_operations_file, "r".encode())
     
     return ret_val
 
@@ -87,33 +92,44 @@ def get_event_status(channel):
     return ret_val
 
 def _loop():
-    global _mutex
+    global _mutex, _operations_file
 
     while True:
-        if(len(_fd_set)):
-            _mutex.acquire()
+        _mutex.acquire()
+        local_set = _fd_set.copy()
+        local_fd_map = _fd_to_map_key.copy()
+        _mutex.release()
+
+        if(len(local_set)):
             try:
-                ready_fds = select.select(_fd_set, [], [], 0.1)
-            except:
+                ready_fds = select.select(local_set, [], [], None)
+            except Exception as e:
                 if(_event_warnings):
-                    warnings.warn("GPIO file descriptor check failed")
-            _mutex.release()
+                    warnings.warn("GPIO file descriptor check failed error is {}".format(e))
+                continue
 
-            if(ready_fds[0]):
+            if(ready_fds and ready_fds[0]):
                 for fd in ready_fds[0]:
-                    _check_gpio_event(fd)
-        
-        sleep(LOOP_SLEEP_TIME)
-
-    return
+                    if(fd == _operations_file):
+                        os.read(_operations_file, 1)
+                        continue
+                    _check_gpio_event(local_fd_map[fd])
 
 def init_interrupt_loop():
-    global _loop_thread, _mutex
+    global _loop_thread, _mutex, _operations_file
 
     _loop_thread = threading.Thread(target=_loop, name="Portenta.GPIO interrupt loop")
     _mutex = threading.Lock()
+    
+    if(not os.path.exists(_OP_FD)):
+        os.mkfifo(_OP_FD)
 
+    _operations_file = os.open(_OP_FD, os.O_RDWR | os.O_NONBLOCK)
+    _fd_set.add(_operations_file)
+    
     _loop_thread.start()
+
+    atexit.register(deinint_interrupt_loop, None, None)
     
     return
 
@@ -121,5 +137,7 @@ def deinint_interrupt_loop():
     global _loop_thread, _mutex
 
     _loop_thread.join()
+
+    os.close(_operations_file)
 
     return
