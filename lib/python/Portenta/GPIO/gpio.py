@@ -1,4 +1,4 @@
-from Portenta.GPIO.portenta_gpio_map import * 
+from Portenta.GPIO.portenta_gpio_map import *
 from Portenta.GPIO.event_producer import *
 import periphery
 import warnings
@@ -34,7 +34,8 @@ def _output_single_channel( channel, value):
 def _setup_single_channel( channel, direction, pull_up_down, initial_state):
     tmp_direction = ""
     tmp_key = from_channel_to_dict_key(channel)
-        
+    current_mode = get_mode()
+
     if(direction == IN):
         tmp_direction = "in"
     elif (direction == OUT):
@@ -42,11 +43,11 @@ def _setup_single_channel( channel, direction, pull_up_down, initial_state):
 
     if (BOARD_main_header_map[tmp_key][INDEX_GPIO_OBJ]):
         mode_name = "BOARD"
-        if (mode == X8):
+        if (current_mode == X8):
             mode_name = "X8"
-        elif (mode == IMX):
+        elif (current_mode == IMX):
             mode_name = "IMX"
-        elif (mode == BCM):
+        elif (current_mode == BCM):
             mode_name = "BCM"
 
         raise RuntimeError("GPIO {} in mode {} already configured".format(channel, mode_name))
@@ -101,13 +102,14 @@ def _cleanup_single_channel(channel):
     return
 
 def _cleanup_all_channels():
+    current_mode = get_mode()
     curr_dict = BOARD_main_header_map 
 
-    if (mode == X8):
+    if (current_mode == X8):
         curr_dict = X8_main_header_map
-    elif (mode == IMX):
+    elif (current_mode == IMX):
         curr_dict = IMX_main_header_map
-    elif (mode == BCM):
+    elif (current_mode == BCM):
         curr_dict = BCM_main_header_map
 
     for key in curr_dict.keys():
@@ -131,23 +133,13 @@ def setwarnings(state:bool, module=WARNINGS_BOTH):
     return
 
 def setmode(new_mode):
-    global mode 
-    modes = {"BOARD": BOARD,
-             "BCM"  : BCM,
-             "X8"   : X8,
-             "IMX"  : IMX}
     
-    if (new_mode in modes.keys()):
-        mode = modes[new_mode]
-    elif(new_mode in modes.values()):
-        mode = new_mode
-    else:
-        raise ValueError("{} is not recognized as a valid mode. Modes are: BOARD, BCM, X8, IMX".format(mode))
-    
+    internal_setmode(new_mode)
+
     return
 
 def getmode():
-    return mode
+    return get_mode()
 
 def setup(channels, direction, pull_up_down=PUD_OFF, initial=None, consumer='portenta-gpio'):
     channel_list = _make_iterable(channels)

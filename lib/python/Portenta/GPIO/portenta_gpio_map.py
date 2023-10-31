@@ -50,6 +50,26 @@ def from_channel_to_dict_key(channel):
 
     return key
 
+def internal_setmode(new_mode):
+    global mode 
+    modes = {"BOARD": BOARD,
+             "BCM"  : BCM,
+             "X8"   : X8,
+             "IMX"  : IMX}
+    
+    if (new_mode in modes.keys()):
+        mode = modes[new_mode]
+    elif(new_mode in modes.values()):
+        mode = new_mode
+    else:
+        raise ValueError("{} is not recognized as a valid mode. Modes are: BOARD, BCM, X8, IMX".format(mode))
+    
+    return
+
+def get_mode():
+    global mode
+    return mode
+
 BOARD_main_header_map = {
 # INDEX    TAG       CAPABILITIES                CHIP#+GPIO#    HD CONNECTOR    GPIO OBJECT    EVENT TRIGGERED  EVENT CB
     1  : ["3v3"     ,None                        ,None          ,None,          None,          False,           []],
