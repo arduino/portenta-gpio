@@ -28,7 +28,7 @@ classifiers = ['Operating System :: POSIX :: Linux',
                'Topic :: System :: Hardware']
 
 setup(name                          = 'Portenta.GPIO',
-      version                       = '0.1.0',
+      version                       = '0.1.1',
       author                        = 'Riccardo Mereu',
       author_email                  = 'r.mereu@arduino.cc',
       description                   = 'A module to control Portenta GPIO channels',
