@@ -8,7 +8,7 @@ import os
 _GPIOCHIP_ROOT = "/dev/gpiochip5"
 
 if not os.access(_GPIOCHIP_ROOT, os.W_OK):
-    raise RuntimeError("The current user does not have permissions set to access the library functionalites. Please configure permissions or use the root user to run this. It is also possible that {} does not exist. Please check if that file is present.".format(_GPIOCHIP_ROOT))
+    raise RuntimeError(f"The current user does not have permissions set to access the library functionalites. Please configure permissions or use the root user to run this. It is also possible that {_GPIOCHIP_ROOT} does not exist. Please check if that file is present.")
 
 init_interrupt_loop()
 
@@ -25,9 +25,9 @@ def _output_single_channel( channel, value):
         if(gpio_obj.direction == "out"):
             gpio_obj.write(bool(value))
         else:
-            raise RuntimeError("GPIO {} not configured as output".format(channel))
+            raise RuntimeError(f"GPIO {channel} not configured as output")
     else:
-        raise RuntimeError("GPIO {} is not configured yet, use setup function first".format(channel))
+        raise RuntimeError(f"GPIO {channel} is not configured yet, use setup function first")
         
     return
 
@@ -50,7 +50,7 @@ def _setup_single_channel( channel, direction, pull_up_down, initial_state):
         elif (current_mode == BCM):
             mode_name = "BCM"
 
-        raise RuntimeError("GPIO {} in mode {} already configured".format(channel, mode_name))
+        raise RuntimeError(f"GPIO {channel} in mode {mode_name} already configured")
     
     tmp_bias = "default"
 
@@ -65,7 +65,7 @@ def _setup_single_channel( channel, direction, pull_up_down, initial_state):
         current_gpio = periphery.GPIO(_base_gpiochip_path+str(gpio_data[INDEX_GPIOCHIP_INFO][INDEX_GPIOCHIP_NUM]),
                                       gpio_data[INDEX_GPIOCHIP_INFO][INDEX_GPIO], tmp_direction, bias = tmp_bias)
     except:
-        raise RuntimeError("Unexpected error during GPIO {} configuration".format(channel))
+        raise RuntimeError(f"Unexpected error during GPIO {channel} configuration")
     
     BOARD_main_header_map[tmp_key][INDEX_GPIO_OBJ] = current_gpio
 
@@ -96,7 +96,7 @@ def _cleanup_single_channel(channel):
         BOARD_main_header_map[key][INDEX_GPIO_OBJ] = None
     else:
         if(_gpio_warnings):
-            warnings.warn("GPIO {} not configured it does not need cleaning".format(channel))
+            warnings.warn(f"GPIO {channel} not configured it does not need cleaning")
         return
     
     return
@@ -149,7 +149,7 @@ def setup(channels, direction, pull_up_down=PUD_OFF, initial=None, consumer='por
             _setup_single_channel(channel, direction, pull_up_down, initial)
         except:
             if(len(channel_list) > 1):
-                print("Error configuring GPIO {} during multiple channel configuration skipping. Check this error.".format(channel))
+                print(f"Error configuring GPIO {channel} during multiple channel configuration skipping. Check this error.")
     return
 
 def output(channels, values):
@@ -173,9 +173,9 @@ def input(channel):
     if(gpio_obj):
         ret_val = int(gpio_obj.read())
         if(gpio_obj.direction == "out" and _gpio_warnings):
-            warnings.warn("Performing a read on an GPIO {} configured as GPIO.OUT".format(channel))
+            warnings.warn(f"Performing a read on an GPIO {channel} configured as GPIO.OUT")
     else:
-        raise RuntimeError("GPIO {} is not configured yet, use setup function first".format(channel))
+        raise RuntimeError(f"GPIO {channel} is not configured yet, use setup function first")
     
     return ret_val
 
@@ -201,9 +201,9 @@ def add_event_detect(channel, edge, callback=None, bouncetime=None, polltime=0.2
     
     if(gpio_obj):
         if(gpio_obj.direction != "in"):
-            raise RuntimeError("GPIO {} is not configured ad input".format(channel))
+            raise RuntimeError(f"GPIO {channel} is not configured ad input")
     else:
-        raise RuntimeError("GPIO {} is not configured yet, use setup function first".format(channel))
+        raise RuntimeError(f"GPIO {channel} is not configured yet, use setup function first")
     
     if edge != RISING and edge != FALLING and edge != BOTH:
         raise ValueError("The edge must be set to RISING, FALLING, or BOTH")
@@ -229,16 +229,16 @@ def remove_event_detect(channel, timeout=0.5):
     if(gpio_obj):
         if(gpio_obj.edge != "none"):
             if(not remove_gpio_from_checklist(channel) and _gpio_warnings):
-                warnings.warn("GPIO {} event detect is not set".format(channel))
+                warnings.warn(f"GPIO {channel} event detect is not set")
             try:
                 gpio_obj.edge = "none"
             except Exception as e:
                 print(e)
         else:
             if(_gpio_warnings):
-                warnings.warn("GPIO {} has not an event set".format(channel))
+                warnings.warn(f"GPIO {channel} has not an event set")
     else:
-        raise RuntimeError("GPIO {} is not configured yet, use setup function first".format(channel))
+        raise RuntimeError(f"GPIO {channel} is not configured yet, use setup function first")
 
     BOARD_main_header_map[key][INDEX_EVENT_TRIGGD] = False
     BOARD_main_header_map[key][INDEX_EVENT_CB].clear()
@@ -251,9 +251,9 @@ def event_detected(channel):
     
     if(gpio_obj):
         if(gpio_obj.direction != "in"):
-            raise RuntimeError("GPIO {} is not configured ad input".format(channel))
+            raise RuntimeError(f"GPIO {channel} is not configured ad input")
     else:
-        raise RuntimeError("GPIO {} is not configured yet, use setup function first".format(channel))
+        raise RuntimeError(f"GPIO {channel} is not configured yet, use setup function first")
     
     return get_event_status(channel)
 
@@ -271,9 +271,9 @@ def add_event_callback(channel, callback):
             else:
                 raise ValueError("There is non event set, it must be RISING, FALLING, or BOTH")
         else:
-            raise RuntimeError("GPIO {} is not configured ad input".format(channel))
+            raise RuntimeError(f"GPIO {channel} is not configured ad input")
     else:
-          raise RuntimeError("GPIO {} is not configured yet, use setup function first".format(channel))
+          raise RuntimeError(f"GPIO {channel} is not configured yet, use setup function first")
       
     return
 
@@ -283,9 +283,9 @@ def wait_for_edge(channel, edge, bouncetime=None, timeout=None):
     
     if(gpio_obj):
         if(gpio_obj.direction != "in"):
-            raise RuntimeError("GPIO {} is not configured ad input".format(channel))
+            raise RuntimeError(f"GPIO {channel} is not configured ad input")
     else:
-        raise RuntimeError("GPIO {} is not configured yet, use setup function first".format(channel))
+        raise RuntimeError(f"GPIO {channel} is not configured yet, use setup function first")
     
     if edge != RISING and edge != FALLING and edge != BOTH:
         raise ValueError("The edge must be set to RISING, FALLING, or BOTH")
@@ -319,9 +319,9 @@ def gpio_function(channel):
         elif(gpio_obj.direction == "out"):
             func = OUT
         else:
-            raise RuntimeError("Unexpected behavior on GPIO {}".format(channel))
+            raise RuntimeError(f"Unexpected behavior on GPIO {channel}")
     else:
         if(_gpio_warnings):
-            warnings.warn("GPIO {} not configured".format(channel))
+            warnings.warn(f"GPIO {channel} not configured")
 
     return func

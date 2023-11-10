@@ -62,7 +62,7 @@ def internal_setmode(new_mode):
     elif(new_mode in modes.values()):
         mode = new_mode
     else:
-        raise ValueError("{} is not recognized as a valid mode. Modes are: BOARD, BCM, X8, IMX".format(mode))
+        raise ValueError(f"{mode} is not recognized as a valid mode. Modes are: BOARD, BCM, X8, IMX")
     
     return
 
