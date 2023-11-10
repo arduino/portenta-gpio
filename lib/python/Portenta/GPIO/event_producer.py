@@ -24,11 +24,10 @@ def add_gpio_to_checklist(channel):
     file_descriptor = BOARD_main_header_map[key][INDEX_GPIO_OBJ].fd
 
     _mutex.acquire()
+    os.write(_operations_file, "a".encode())
     _fd_to_map_key[file_descriptor] = channel
     _fd_set.add(file_descriptor)
     _mutex.release()
-
-    os.write(_operations_file, "a".encode())
 
     return
 
@@ -38,6 +37,7 @@ def remove_gpio_from_checklist(channel):
     ret_val = True
 
     _mutex.acquire()
+    os.write(_operations_file, "r".encode())
     try:
         del _fd_to_map_key[file_descriptor]
     except:
@@ -46,7 +46,6 @@ def remove_gpio_from_checklist(channel):
     _fd_set.remove(file_descriptor)
     _mutex.release()
 
-    os.write(_operations_file, "r".encode())
     
     return ret_val
 
@@ -102,14 +101,14 @@ def _loop():
                 ready_fds = select.select(local_set, [], [], None)
             except Exception as e:
                 if(_event_warnings):
-                    warnings.warn("GPIO file descriptor check failed error is {}".format(e))
+                    warnings.warn(f"GPIO file descriptor check failed error is {str(e)}")
                 continue
 
             if(ready_fds and ready_fds[0]):
                 for fd in ready_fds[0]:
                     if(fd == _operations_file):
                         os.read(_operations_file, 1)
-                        continue
+                        break
                     _check_gpio_event(local_fd_map[fd])
 
 def init_interrupt_loop():
@@ -130,7 +129,7 @@ def init_interrupt_loop():
     
     return
 
-def deinint_interrupt_loop():
+def deinint_interrupt_loop(arg1, arg2):
     global _loop_thread, _mutex
 
     _loop_thread.join()
