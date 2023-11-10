@@ -307,6 +307,11 @@ def wait_for_edge(channel, edge, bouncetime=None, timeout=None):
     
     return
 
+def get_gpio_properties(channel):
+    key = from_channel_to_dict_key(channel)
+
+    return BOARD_main_header_map[key]
+
 def gpio_function(channel):
     key = from_channel_to_dict_key(channel)
     gpio_obj = BOARD_main_header_map[key][INDEX_GPIO_OBJ]
